@@ -1,0 +1,63 @@
+---
+title: "Tanimoto similarities"
+author: "David Hall"
+format: html
+editor: visual
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: false
+---
+
+```{r}
+#| label: libraries
+
+library(reticulate)
+library(tidyverse)
+
+```
+
+
+```{r}
+#| label: PFAS data and tanimoto similartities
+
+# PFAS Data
+pfas <- read_csv("PFAS74.csv")
+
+# Running python script to generate pairwise Tanimoto differences
+# script from https://github.com/MunibaFaiza/tanimoto_similarities
+source_python("tanimoto_similarities.py") # Source python script
+# results saved as "similarities_lower_tri.txt"
+```
+
+```{r}
+
+tanimoto <- read_csv("similarities_lower_tri.csv",
+                     col_names = FALSE)
+
+x <- tanimoto %>%
+  mutate_all(as.numeric) %>%
+  rownames_to_column(var = "row") %>%
+  pivot_longer(cols = contains("X"), 
+               names_to = "col", 
+               values_to = "value") %>%
+  mutate(col = as.numeric(str_replace(col, "X", "")),
+         row = as.numeric(row))
+
+ggplot(x, 
+       aes(x = row, 
+           y = col, 
+           fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  theme_classic()
+
+```
+
+
+```{r}
+y <- x %>%
+  filter(value > 0)
+```
+

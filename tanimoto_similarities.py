@@ -22,7 +22,7 @@ np.set_printoptions(threshold=sys.maxsize)
 
 # Reading the input CSV file.
 
-ligands_df = pd.read_csv("smiles.csv" , index_col=0 )
+ligands_df = pd.read_csv("PFAS74.csv" , index_col=0 )
 print(ligands_df.head())
 
 
@@ -36,9 +36,9 @@ molecules = []
             index and write column names after a ','.
 """
 
-for _, smiles in ligands_df[[ "SMILES"]].itertuples():
+for _, smiles in ligands_df[[ "MS_READY_SMILES"]].itertuples():
     molecules.append((Chem.MolFromSmiles(smiles)))
-molecules[:15]
+molecules[:73]
 
 
 # Creating fingerprints for all molecules
@@ -72,53 +72,9 @@ pairwise_similarity(fgrps)
 tri_lower_diag = np.tril(similarities, k=0)
 
 
-# Visulaizing the similarities
+# writing similarities to file
 
-# definging labels to show on heatmap
-labels = ['lig1','lig2','lig3','lig4','lig5','lig6','lig7', 'lig8', 'lig9', 'lig10', 'lig11', 'lig12', 'lig13', 'lig14', 'lig15']
+np.savetxt("similarities.csv", similarities, delimiter = ",")
 
+np.savetxt("similarities_lower_tri.csv", tri_lower_diag, delimiter = ",")
 
-def normal_heatmap (sim):
-
-    # writing similalrities to a file
-    f = open("similarities.txt", "w")
-    print (similarities, file=f)
-
-    sns.set(font_scale=0.8)
-
-    # generating the plot
-    
-    plot = sns.heatmap(sim[:15,:15], annot = True, annot_kws={"fontsize":5}, center=0,
-            square=True, xticklabels=labels, yticklabels=labels, linewidths=.7, cbar_kws={"shrink": .5})
-
-    plt.title('Heatmap of Tanimoto Similarities', fontsize = 20) # title with fontsize 20
-
-    plt.show()
-
-    # saving the plot
-
-    fig = plot.get_figure()
-    fig.savefig("tanimoto_heatmap.png") 
-
-
-def lower_tri_heatmap (sim):
-    f = open("similarities_lower_tri.txt", "w")
-
-    print (tri_lower_diag, file=f)
-
-    cmap = sns.diverging_palette(220, 10, as_cmap=True)
-
-    lower_tri_plot = sns.heatmap(tri_lower_diag[:15,:15], annot = False, cmap=cmap,center=0,
-            square=True, xticklabels=labels, yticklabels=labels, linewidths=.7, cbar_kws={"shrink": .5})
-
-    plt.title('Heatmap of Tanimoto Similarities', fontsize = 20)
-
-    plt.show()
-
-    fig = lower_tri_plot.get_figure()
-    fig.savefig("tanimoto_heatmap_lw_tri.png") 
-
-
-normal_heatmap(similarities)
-
-lower_tri_heatmap(similarities)
